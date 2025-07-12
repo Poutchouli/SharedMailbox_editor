@@ -1,0 +1,29 @@
+Identity;User;AccessRights
+cartman.fatass;NT AUTHORITY\SELF;FullAccess, ReadPermission
+cartman.fatass;kyle.broflovski;FullAccess
+cartman.fatass;stan.marsh;ReadPermission
+kenny.mccormick;NT AUTHORITY\SELF;FullAccess, ReadPermission
+kenny.mccormick;chef.jerome;FullAccess, SendAs
+kenny.mccormick;butters.stotch;ReadPermission
+kyle.broflovski;NT AUTHORITY\SELF;FullAccess, ReadPermission
+kyle.broflovski;stan.marsh;FullAccess, SendAs
+kyle.broflovski;mr.garrison;ReadPermission
+stan.marsh;NT AUTHORITY\SELF;FullAccess, ReadPermission
+stan.marsh;wendy.testaburger;FullAccess
+stan.marsh;randy.marsh;FullAccess, SendAs
+shared.cafeteria;NT AUTHORITY\SELF;FullAccess, ReadPermission
+shared.cafeteria;chef.jerome;FullAccess, SendAs
+shared.cafeteria;principal.victoria;FullAccess
+shared.cafeteria;ms.choksondik;ReadPermission
+shared.principals;NT AUTHORITY\SELF;FullAccess, ReadPermission
+shared.principals;principal.victoria;FullAccess, SendAs
+shared.principals;mr.mackey;FullAccess
+shared.principals;mr.garrison;ReadPermission
+shared.teachers;NT AUTHORITY\SELF;FullAccess, ReadPermission
+shared.teachers;mr.garrison;FullAccess, SendAs
+shared.teachers;ms.choksondik;FullAccess
+shared.teachers;mr.mackey;FullAccess
+shared.teachers;chef.jerome;ReadPermission
+shared.buses;NT AUTHORITY\SELF;FullAccess, ReadPermission
+shared.buses;ms.crabtree;FullAccess, SendAs
+shared.buses;principal.victoria;ReadPermission

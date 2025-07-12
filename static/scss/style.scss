@@ -1,0 +1,988 @@
+/*
+ * Professional Business Theme CSS
+ * Modern, clean, and professional design
+ */
+
+/* Import professional fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* CSS Variables for consistent theming */
+:root {
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --background-primary: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-tertiary: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #cbd5e1 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 16px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+/* Main container with improved glass morphism effect */
+.container {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  padding: 3rem 2.5rem;
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 1.875rem;
+  color: var(--text-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: var(--primary-color);
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+/* Modern button styles */
+.button, .submit-button, .file-input-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  text-decoration: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: inline-block;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  min-width: 140px;
+}
+
+.button:hover, .submit-button:hover, .file-input-label:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.button:active, .submit-button:active, .file-input-label:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-md);
+}
+
+/* Button variants */
+.button, .button.primary, .submit-button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.button.secondary {
+  background: linear-gradient(135deg, var(--secondary-color), #475569);
+}
+
+.button.success, .file-input-label {
+  background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.button.warning {
+  background: linear-gradient(135deg, var(--warning-color), #d97706);
+}
+
+.button.danger {
+  background: linear-gradient(135deg, var(--error-color), #dc2626);
+}
+
+.button:disabled, .submit-button:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Menu options styling */
+.menu-options {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Information boxes */
+.info, .error-message, .warning, .info-box {
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: var(--radius-md);
+  text-align: left;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.error-message, .error {
+  background: #fef2f2;
+  border-color: var(--error-color);
+  border-left-color: var(--error-color);
+  color: #991b1b;
+}
+
+.error-message h3, .error h3 {
+  margin-top: 0;
+  color: var(--error-color);
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+}
+
+.warning {
+  background: #fffbeb;
+  border-color: var(--warning-color);
+  border-left-color: var(--warning-color);
+  color: #92400e;
+}
+
+.info-box { /* Specific style for info-box, distinct from generic .info */
+  background: #eff6ff;
+  border-color: var(--primary-color);
+  border-left-color: var(--primary-color);
+  color: #1e40af;
+  margin-bottom: 2rem; /* Add more space below info-box */
+}
+
+/* Form styling */
+.upload-form, .form-section {
+  margin-top: 2rem;
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus, 
+input[type="email"]:focus, 
+input[type="password"]:focus, 
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background-color: var(--background-primary);
+}
+
+/* File input styling */
+.file-input-section {
+  margin-bottom: 1.5rem;
+}
+
+.file-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.file-info.selected {
+  background-color: #ecfdf5;
+  border-color: var(--success-color);
+  color: #065f46;
+}
+
+.submit-section {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+/* Code blocks */
+pre, code {
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.code-example {
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.code-example pre {
+  margin: 0;
+}
+
+.code-example code {
+  display: block;
+  margin: 0;
+}
+
+/* Sample file section */
+.sample-file-section {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: var(--background-secondary);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.sample-file-section:hover {
+  border-color: var(--primary-color);
+}
+
+.sample-file-section p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.sample-download {
+  margin-top: 1rem;
+}
+
+.sample-download .button {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--success-color), #059669);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.sample-download .button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Professional Modal Styles */
+.sp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.sp-modal {
+  font-family: 'Inter', sans-serif;
+  background: var(--background-primary);
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+}
+
+.sp-modal h3 {
+  margin-top: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.sp-modal p {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 1.5rem;
+}
+
+.sp-modal-prompt-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.sp-modal-prompt-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.sp-modal-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Form groups and improved layout */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.checkbox-group label:hover {
+  background-color: var(--background-secondary);
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--background-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  position: absolute;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* --- Styles specifically for Mailbox Management and Pending Changes (formerly in separate HTMLs) --- */
+
+/* Autocomplete List for Mailbox Search */
+.autocomplete-list { 
+    border: 1px solid var(--border-color); 
+    border-top: none; 
+    max-height: 200px; 
+    overflow-y: auto; 
+    position: absolute; 
+    background-color: var(--background-primary); 
+    width: calc(100% - 22px); /* Adjusted for parent padding/border */
+    z-index: 1000; 
+    font-family: 'Inter', sans-serif; 
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+.autocomplete-list div { 
+    padding: 0.75rem; 
+    cursor: pointer; 
+    transition: background-color 0.2s ease;
+}
+.autocomplete-list div:hover { 
+    background-color: var(--background-secondary); 
+}
+
+/* Tag Container for Selected Mailboxes */
+.tag-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.5rem; 
+    margin-top: 0.5rem; 
+    margin-bottom: 0.75rem; 
+    border: 2px solid var(--border-color); 
+    padding: 0.75rem; 
+    border-radius: var(--radius-md); 
+    min-height: 40px; 
+    align-items: center; 
+    background-color: var(--background-secondary); 
+    transition: border-color 0.2s ease;
+}
+.tag-container:focus-within {
+    border-color: var(--primary-color);
+}
+.tag { 
+    background-color: var(--background-primary); 
+    border: 1px solid var(--border-color); 
+    padding: 0.375rem 0.75rem; 
+    border-radius: var(--radius-sm); 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    white-space: nowrap; 
+    display: flex; 
+    align-items: center; 
+    font-size: 0.875rem; 
+    line-height: 1.2; 
+    font-family: 'Inter', sans-serif; 
+    color: var(--text-primary);
+}
+.tag:hover { 
+    background-color: var(--background-tertiary); 
+    border-color: var(--primary-color);
+}
+.tag.selected { 
+    background-color: var(--primary-color); 
+    color: white; 
+    border-color: var(--primary-color); 
+}
+.tag.selected:hover { 
+    background-color: var(--primary-dark); 
+}
+.tag .remove-tag { 
+    margin-left: 0.5rem; 
+    cursor: pointer; 
+    font-weight: 600; 
+    color: var(--text-muted); 
+    transition: color 0.2s ease;
+}
+.tag.selected .remove-tag { 
+    color: white; 
+}
+.tag .remove-tag:hover { 
+    color: var(--error-color); 
+}
+
+/* Empty tag container styling */
+.tag-container:empty::before {
+  content: "Aucune boîte aux lettres sélectionnée";
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Improved tag styling */
+.tag {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.tag.success {
+  background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.tag.danger {
+  background: linear-gradient(135deg, var(--error-color), #dc2626);
+}
+
+.tag.secondary {
+  background: linear-gradient(135deg, var(--secondary-color), #475569);
+}
+
+/* Remove tag button */
+.remove-tag {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.remove-tag:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Section for Mailbox Details (Current Permissions) */
+.mailbox-details-section { 
+    margin-top: 1.5rem; 
+    padding: 2rem;
+    border: 1px solid var(--border-color); 
+    border-radius: var(--radius-lg); 
+    background-color: var(--background-secondary); 
+    box-shadow: var(--shadow-sm);
+}
+.user-permission-card { 
+    font-family: 'Inter', sans-serif; 
+    background-color: var(--background-primary); 
+    border: 1px solid var(--border-color); 
+    border-radius: var(--radius-md); 
+    padding: 1rem; 
+    margin-top: 0.75rem; 
+    box-shadow: var(--shadow-sm); 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 0.75rem; 
+    transition: box-shadow 0.2s ease;
+}
+.user-permission-card:hover {
+    box-shadow: var(--shadow-md);
+}
+.individual-mailbox-section { 
+    border: 1px solid var(--border-color); 
+    border-radius: var(--radius-md); 
+    padding: 1.25rem; 
+    background-color: var(--background-primary); 
+    box-shadow: var(--shadow-sm); 
+    margin-top: 1.25rem; 
+}
+.mailbox-title { 
+    background-color: var(--background-secondary); 
+    padding: 0.75rem 1rem; 
+    border-radius: var(--radius-md); 
+    margin-bottom: 1rem; 
+    color: var(--text-primary); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-weight: 600;
+}
+.mailbox-add-user { 
+    margin-top: 1rem; 
+    padding: 1rem; 
+    border: 2px dashed var(--border-color); 
+    border-radius: var(--radius-md); 
+    background-color: var(--background-secondary); 
+    transition: border-color 0.2s ease;
+}
+.mailbox-add-user:hover {
+    border-color: var(--primary-color);
+}
+.mailbox-add-user h4 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+.mailbox-add-user .input-group { 
+    display: flex; 
+    gap: 0.75rem; 
+    align-items: center; 
+    flex-wrap: wrap; 
+}
+
+/* Styles for the "Changes to Apply" table */
+#changes_to_apply_section {
+    margin-top: 2rem;
+}
+#changes_to_apply_table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-family: 'Inter', sans-serif;
+}
+#changes_to_apply_table th, #changes_to_apply_table td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.9em;
+}
+#changes_to_apply_table th {
+    background-color: var(--background-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+#changes_to_apply_table tbody tr:nth-child(even) {
+    background-color: var(--background-tertiary);
+}
+#changes_to_apply_table tbody tr:hover {
+    background-color: #e0f2fe; /* Light blue on hover */
+}
+.action-cell {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.action-cell .button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8em;
+    min-width: unset; /* Override default button min-width */
+}
+
+/* PowerShell Script Output */
+#powershell_script_section {
+    margin-top: 2rem;
+    /* display: none; Managed by JS */
+}
+#powershell_script_output {
+    width: 100%;
+    height: 400px;
+    background-color: var(--background-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: var(--text-primary);
+    resize: vertical; /* Allow vertical resizing */
+    line-height: 1.4;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Search container for proper autocomplete positioning */
+.search-container {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+/* Mailbox search input with better styling */
+#mailbox_search_input {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+/* Fix autocomplete positioning */
+#autocomplete_mailbox_suggestions {
+  width: 100%;
+  left: 0;
+  right: 0;
+}
+
+/* Improved form section spacing */
+.form-section {
+  margin-bottom: 2.5rem;
+  text-align: left;
+}
+
+.form-section h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Mailbox details section styling */
+.mailbox-details-section {
+  background-color: var(--background-secondary);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+/* Table improvements */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  background-color: var(--background-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+table th,
+table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+table th {
+  background-color: var(--background-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+table tr:hover {
+  background-color: var(--background-secondary);
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Action cell styling */
+.action-cell {
+  white-space: nowrap;
+}
+
+.action-cell .button {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
+}
+
+/* Helper text styling */
+.helper-text {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  display: block;
+  font-size: 0.875rem;
+}
+
+/* Right-aligned button container */
+.button-container-right {
+  text-align: right;
+  margin-top: 1rem;
+}
+
+/* Center text styling */
+.text-center {
+  text-align: center;
+}
+
+/* Italic text for empty states */
+.empty-state-text {
+  font-style: italic;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Tag action styling */
+.tag.action-tag {
+  min-width: 60px;
+  justify-content: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* Hidden sections */
+.hidden {
+  display: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .menu-options {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .button, .submit-button, .file-input-label {
+    min-width: 200px;
+  }
+
+  /* Adjust table for smaller screens */
+  #changes_to_apply_table, #changes_to_apply_table tbody, #changes_to_apply_table tr, #changes_to_apply_table td, #changes_to_apply_table th {
+    display: block;
+  }
+  #changes_to_apply_table thead {
+    display: none; /* Hide table headers on small screens */
+  }
+  #changes_to_apply_table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  #changes_to_apply_table td {
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    position: relative;
+    padding-left: 50%; /* Space for pseudo-element label */
+    text-align: right;
+  }
+  #changes_to_apply_table td:last-child {
+    border-bottom: none;
+  }
+  #changes_to_apply_table td::before {
+    content: attr(data-label); /* Use data-label for content */
+    position: absolute;
+    left: 0;
+    width: 45%;
+    padding-left: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+  /* Specific labels for each column */
+  #changes_to_apply_table td:nth-of-type(1)::before { content: "Action:"; }
+  #changes_to_apply_table td:nth-of-type(2)::before { content: "Boîte aux lettres:"; }
+  #changes_to_apply_table td:nth-of-type(3)::before { content: "Utilisateur:"; }
+  #changes_to_apply_table td:nth-of-type(4)::before { content: "Droits:"; }
+  #changes_to_apply_table td:nth-of-type(5)::before { content: "Actions:"; }
+
+  .action-cell {
+      justify-content: flex-end; /* Align action buttons to the right */
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  .button, .submit-button, .file-input-label {
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}

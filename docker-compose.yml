@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    # Ensure logs are visible in docker logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: development # Use 'production' for production
+      # Optionally expose debug logs directly if needed for AI analysis in orchestrator logs
+      PYTHONUNBUFFERED: "1" # Ensures Python output is unbuffered for immediate logging
+    command: python app.py
