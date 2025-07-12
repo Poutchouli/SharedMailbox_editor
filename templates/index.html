@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharedMailbox Editor - Gestionnaire de Permissions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Page-specific styles for the combined interface */
+
+        /* Autocomplete List for Mailbox Search */
+        .autocomplete-list { 
+            border: 1px solid var(--border-color); 
+            border-top: none; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            position: absolute; 
+            background-color: var(--background-primary); 
+            width: calc(100% - 22px); /* Adjust for padding/border of parent */
+            z-index: 1000; 
+            font-family: 'Inter', sans-serif; 
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: var(--shadow-md);
+        }
+        .autocomplete-list div { 
+            padding: 0.75rem; 
+            cursor: pointer; 
+            transition: background-color 0.2s ease;
+        }
+        .autocomplete-list div:hover { 
+            background-color: var(--background-secondary); 
+        }
+
+        /* Tag Container for Selected Mailboxes */
+        .tag-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 0.5rem; 
+            margin-top: 0.5rem; 
+            margin-bottom: 0.75rem; 
+            border: 2px solid var(--border-color); 
+            padding: 0.75rem; 
+            border-radius: var(--radius-md); 
+            min-height: 40px; 
+            align-items: center; 
+            background-color: var(--background-secondary); 
+            transition: border-color 0.2s ease;
+        }
+        .tag-container:focus-within {
+            border-color: var(--primary-color);
+        }
+        .tag { 
+            background-color: var(--background-primary); 
+            border: 1px solid var(--border-color); 
+            padding: 0.375rem 0.75rem; 
+            border-radius: var(--radius-sm); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            white-space: nowrap; 
+            display: flex; 
+            align-items: center; 
+            font-size: 0.875rem; 
+            line-height: 1.2; 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-primary);
+        }
+        .tag:hover { 
+            background-color: var(--background-tertiary); 
+            border-color: var(--primary-color);
+        }
+        .tag.selected { 
+            background-color: var(--primary-color); 
+            color: white; 
+            border-color: var(--primary-color); 
+        }
+        .tag.selected:hover { 
+            background-color: var(--primary-dark); 
+        }
+        .tag .remove-tag { 
+            margin-left: 0.5rem; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--text-muted); 
+            transition: color 0.2s ease;
+        }
+        .tag.selected .remove-tag { 
+            color: white; 
+        }
+        .tag .remove-tag:hover { 
+            color: var(--error-color); 
+        }
+
+        /* Section for Mailbox Details (Current Permissions) */
+        .mailbox-details-section { 
+            margin-top: 1.5rem; 
+            padding: 1.25rem; 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            background-color: var(--background-primary); 
+            box-shadow: var(--shadow-sm);
+        }
+        .user-permission-card { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--background-primary); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            padding: 1rem; 
+            margin-top: 0.75rem; 
+            box-shadow: var(--shadow-sm); 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 0.75rem; 
+            transition: box-shadow 0.2s ease;
+        }
+        .user-permission-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .individual-mailbox-section { 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            padding: 1.25rem; 
+            background-color: var(--background-primary); 
+            box-shadow: var(--shadow-sm); 
+            margin-top: 1.25rem; 
+        }
+        .mailbox-title { 
+            background-color: var(--background-secondary); 
+            padding: 0.75rem 1rem; 
+            border-radius: var(--radius-md); 
+            margin-bottom: 1rem; 
+            color: var(--text-primary); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-weight: 600;
+        }
+        .mailbox-add-user { 
+            margin-top: 1rem; 
+            padding: 1rem; 
+            border: 2px dashed var(--border-color); 
+            border-radius: var(--radius-md); 
+            background-color: var(--background-secondary); 
+            transition: border-color 0.2s ease;
+        }
+        .mailbox-add-user:hover {
+            border-color: var(--primary-color);
+        }
+        .mailbox-add-user .input-group { 
+            display: flex; 
+            gap: 0.75rem; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+
+        /* Styles for the "Changes to Apply" table */
+        #changes_to_apply_section {
+            margin-top: 2rem;
+        }
+        #changes_to_apply_table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        #changes_to_apply_table th, #changes_to_apply_table td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        #changes_to_apply_table th {
+            background-color: var(--background-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        #changes_to_apply_table tbody tr:nth-child(even) {
+            background-color: var(--background-tertiary);
+        }
+        #changes_to_apply_table tbody tr:hover {
+            background-color: #e0f2fe; /* Light blue on hover */
+        }
+        .action-cell {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .action-cell .button {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8em;
+            min-width: unset;
+        }
+        
+        /* PowerShell Script Output */
+        #powershell_script_section {
+            margin-top: 2rem;
+            display: none; /* Hidden by default */
+        }
+        #powershell_script_output {
+            width: 100%;
+            height: 400px;
+            background-color: #f8f8f8;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #333;
+            resize: vertical;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SharedMailbox Editor</h1>
+        
+        <div class="menu-options">
+            <a href="#" id="show_upload_section_btn" class="button primary" title="Importe un fichier CSV avec les permissions des boîtes aux lettres">
+                Importer un fichier CSV
+            </a>
+            <a href="#" id="show_manage_section_btn" class="button secondary" title="Gère manuellement les permissions des boîtes aux lettres partagées">
+                Gestion avancée des permissions
+            </a>
+        </div>
+
+        <div id="upload_section" class="form-section">
+            <h2>Importation de Fichier CSV</h2>
+            
+            {% if error %}
+            <div class="error-message">
+                <h3>Erreur de Traitement</h3>
+                <p>{{ error }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="info">
+                <p>Veuillez télécharger un fichier CSV avec les colonnes suivantes (séparées par un point-virgule) :</p>
+                <p><strong>Format requis :</strong></p>
+                <div class="code-example">
+                    <code>Identity;User;AccessRights</code>
+                </div>
+                <p><strong>Exemple de données :</strong></p>
+                <div class="code-example">
+                    <pre><code>LOCALHOST;NT AUTHORITY\SELF;FullAccess, ReadPermission
+SHARED-MAILBOX;DOMAIN\user.name;SendAs, ReceiveAs
+PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
+                </div>
+                
+                <div class="sample-file-section">
+                    <p><strong>Fichier d'exemple disponible</strong></p>
+                    <p>Un fichier de démonstration avec des données de test est disponible pour vous aider à comprendre le format requis :</p>
+                    <div class="sample-download">
+                        <a href="/sample" class="button success" title="Télécharge un fichier CSV exemple avec des données de test">
+                            Télécharger l'exemple CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+                <div class="file-input-section">
+                    <label for="file-input" class="file-input-label" title="Sélectionne un fichier CSV contenant les permissions des boîtes aux lettres">
+                        Sélectionner un fichier CSV
+                    </label>
+                    <input type="file" id="file-input" name="file" accept=".csv" required>
+                    <div class="file-info" id="file-info">
+                        Aucun fichier sélectionné
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                        Formats acceptés: .csv (taille max recommandée: 5MB)
+                    </small>
+                </div>
+                <div class="submit-section">
+                    <input type="submit" value="Importer et traiter le fichier" class="submit-button" id="submit-button" disabled title="Traite le fichier CSV et affiche les résultats">
+                    <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                        Le fichier sera analysé et les permissions seront affichées pour modification.
+                    </small>
+                </div>
+            </form>
+        </div>
+
+        <div id="manage_permissions_section" class="form-section" style="display: none;">
+            <h2>Gestion des Permissions</h2>
+
+            <div class="info-box">
+                <p>Fichier CSV importé : <strong id="current_filename">{% if filename %}{{ filename }}{% else %}Aucun fichier chargé{% endif %}</strong> (<span id="initial_data_count">{% if initial_data %}{{ initial_data|length }}{% else %}0{% endif %}</span> entrées)</p>
+                <label style="margin-top: 1rem; display: block;">
+                    <input type="checkbox" id="enable_auth" onchange="toggleAuthentication()"> 
+                    Inclure les identifiants dans le script (optionnel)
+                </label>
+            </div>
+
+            <div class="form-section" id="auth-section" style="display: none;">
+                <h3>Informations d'authentification</h3>
+                <input type="text" id="username_admin" placeholder="Nom d'utilisateur administrateur" value="">
+                <input type="password" id="password_admin" placeholder="Mot de passe administrateur" value="">
+                <input type="text" id="domain_admin" value="rocketmail.fr">
+            </div>
+
+            <div class="form-section">
+                <h2>1. Sélection des boîtes aux lettres</h2>
+                <input type="text" id="mailbox_search_input" placeholder="Rechercher une boîte aux lettres par nom...">
+                <div id="autocomplete_mailbox_suggestions" class="autocomplete-list"></div>
+                <div id="selected_mailboxes_container" class="tag-container"></div>
+                <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                    Tapez le nom d'une boîte aux lettres pour rechercher et sélectionner.
+                </small>
+            </div>
+
+            <div id="selected_mailboxes_details" class="mailbox-details-section" style="display: none;">
+                <h2>2. Permissions actuelles des boîtes sélectionnées</h2>
+                <div id="mailbox_permissions_container" class="mailbox-permissions-container"></div>
+            </div>
+
+            <div id="changes_to_apply_section" class="form-section">
+                <h2>3. Modifications à appliquer</h2>
+                <p class="info">Ces opérations seront incluses dans le script PowerShell final.</p>
+                <table id="changes_to_apply_table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Boîte aux lettres</th>
+                            <th>Utilisateur</th>
+                            <th>Droits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="button danger" onclick="clearAllChanges()">Effacer toutes les modifications</button>
+                </div>
+            </div>
+
+            <div class="warning">
+                <h4>Attention - Génération du script PowerShell</h4>
+                <p>Le script généré modifiera directement les permissions dans Exchange Online. Veuillez noter que "NT AUTHORITY\SELF" ne peut pas être supprimé car il s'agit d'une permission système essentielle. Vérifiez attentivement le script avant de l'exécuter.</p>
+            </div>
+
+            <div class="submit-section">
+                <button type="button" class="button primary" onclick="generateFinalScript()">
+                    Générer le script PowerShell final
+                </button>
+            </div>
+
+            <div id="powershell_script_section">
+                <h2>Script PowerShell généré</h2>
+                <textarea id="powershell_script_output" readonly></textarea>
+                <div style="text-align: right; margin-top: 0.75rem;">
+                    <button class="button success" onclick="copyScriptToClipboard()">Copier dans le presse-papiers</button>
+                    <button class="button primary" onclick="downloadScriptFile()">Télécharger le script (.ps1)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sp-modal-overlay" class="sp-modal-overlay">
+        <div id="sp-modal" class="sp-modal">
+            <h3 id="sp-modal-title"></h3>
+            <p id="sp-modal-text"></p>
+            <div id="sp-modal-prompt" style="display: none;">
+                <input type="password" id="sp-modal-input" class="sp-modal-prompt-input" placeholder="Mot de passe...">
+            </div>
+            <div class="sp-modal-buttons">
+                <button id="sp-modal-confirm-btn" class="button success">Confirmer</button>
+                <button id="sp-modal-cancel-btn" class="button danger">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Global Variables & Initial Setup ---
+        // Data imported from CSV, will be populated on load or via API
+        let initialData = {{ initial_data | tojson }};
+        let currentFilename = "{{ filename }}";
+
+        // Process initial data into a structured format for easier lookup
+        const uniqueMailboxIdentities = new Set();
+        const groupedMailboxData = {}; // Stores existing permissions from CSV
+        
+        // This array will hold all operations (add/remove) pending script generation
+        let pendingOperations = [];
+
+        // UI element references
+        const showUploadBtn = document.getElementById('show_upload_section_btn');
+        const showManageBtn = document.getElementById('show_manage_section_btn');
+        const uploadSection = document.getElementById('upload_section');
+        const manageSection = document.getElementById('manage_permissions_section');
+
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const submitButton = document.getElementById('submit-button');
+        const currentFilenameSpan = document.getElementById('current_filename');
+        const initialDataCountSpan = document.getElementById('initial_data_count');
+
+        const enableAuthCheckbox = document.getElementById('enable_auth');
+        const authSection = document.getElementById('auth-section');
+        const usernameAdminInput = document.getElementById('username_admin');
+        const passwordAdminInput = document.getElementById('password_admin');
+        const domainAdminInput = document.getElementById('domain_admin');
+
+        const mailboxSearchInput = document.getElementById('mailbox_search_input');
+        const autocompleteMailboxSuggestions = document.getElementById('autocomplete_mailbox_suggestions');
+        const selectedMailboxesContainer = document.getElementById('selected_mailboxes_container');
+        const selectedMailboxesDetailsSection = document.getElementById('selected_mailboxes_details');
+        const mailboxPermissionsContainer = document.getElementById('mailbox_permissions_container');
+        let selectedMailboxes = new Set(); // Mailboxes currently selected in the tag area
+
+        const changesTableBody = document.querySelector('#changes_to_apply_table tbody');
+        const powershellScriptSection = document.getElementById('powershell_script_section');
+        const powershellScriptOutput = document.getElementById('powershell_script_output');
+
+        // --- Utility Functions ---
+
+        // Professional Modal Logic (from previous HTML, integrated here)
+        const modalOverlay = document.getElementById('sp-modal-overlay');
+        const modalTitle = document.getElementById('sp-modal-title');
+        const modalText = document.getElementById('sp-modal-text');
+        const modalPrompt = document.getElementById('sp-modal-prompt');
+        const modalInput = document.getElementById('sp-modal-input');
+        const confirmBtn = document.getElementById('sp-modal-confirm-btn');
+        const cancelBtn = document.getElementById('sp-modal-cancel-btn');
+        let resolvePromise;
+
+        function showSPAlert(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modalPrompt.style.display = 'none';
+            confirmBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'none';
+            modalOverlay.style.display = 'flex';
+            return new Promise(resolve => {
+                confirmBtn.onclick = () => {
+                    modalOverlay.style.display = 'none';
+                    resolve(true);
+                };
+            });
+        }
+        
+        function showSPPrompt(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modalPrompt.style.display = 'block';
+            modalInput.value = '';
+            confirmBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+            modalOverlay.style.display = 'flex';
+            modalInput.focus();
+            return new Promise(resolve => {
+                resolvePromise = resolve;
+            });
+        }
+        
+        function showSPConfirm(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modalPrompt.style.display = 'none'; // No input for confirm
+            confirmBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+            modalOverlay.style.display = 'flex';
+            return new Promise(resolve => {
+                resolvePromise = resolve;
+            });
+        }
+        
+        confirmBtn.onclick = () => {
+            modalOverlay.style.display = 'none';
+            const value = modalPrompt.style.display === 'block' ? modalInput.value : true;
+            if (resolvePromise) resolvePromise(value);
+        };
+        cancelBtn.onclick = () => {
+            modalOverlay.style.display = 'none';
+            if (resolvePromise) resolvePromise(null); // Return null for cancellation
+        };
+
+        // --- Data Processing and Rendering ---
+
+        function processInitialData() {
+            uniqueMailboxIdentities.clear();
+            for (const key in groupedMailboxData) {
+                delete groupedMailboxData[key];
+            }
+
+            initialData.forEach(entry => {
+                if (entry.Identity && entry.Identity.trim() !== '') {
+                    const identity = entry.Identity.trim();
+                    uniqueMailboxIdentities.add(identity);
+                    if (!groupedMailboxData[identity]) {
+                        groupedMailboxData[identity] = [];
+                    }
+                    if (entry.User && entry.User.trim() !== '' && entry.AccessRights && entry.AccessRights.trim() !== '') {
+                        groupedMailboxData[identity].push({
+                            user: entry.User.trim(),
+                            accessRights: entry.AccessRights.trim().split(',').map(s => s.trim()).filter(Boolean) // Split and clean
+                        });
+                    }
+                }
+            });
+            updateFileInfo();
+        }
+
+        function updateFileInfo() {
+            currentFilenameSpan.textContent = currentFilename;
+            initialDataCountSpan.textContent = initialData.length;
+        }
+
+        function toggleAuthentication() {
+            if (enableAuthCheckbox.checked) {
+                authSection.style.display = 'block';
+                usernameAdminInput.required = true;
+                passwordAdminInput.required = true;
+                domainAdminInput.required = true;
+            } else {
+                authSection.style.display = 'none';
+                usernameAdminInput.required = false;
+                passwordAdminInput.required = false;
+                domainAdminInput.required = false;
+            }
+        }
+        
+        function renderSelectedMailboxes() {
+            selectedMailboxesContainer.innerHTML = '';
+            if (selectedMailboxes.size === 0) {
+                selectedMailboxesDetailsSection.style.display = 'none';
+            } else {
+                selectedMailboxesDetailsSection.style.display = 'block';
+            }
+
+            Array.from(selectedMailboxes).sort().forEach(mailbox => {
+                const tag = document.createElement('span');
+                tag.classList.add('tag', 'selected');
+                // Display part before @ for UPNs, otherwise full name
+                const displayName = mailbox.includes('@') ? mailbox.split('@')[0] : mailbox;
+                tag.innerHTML = `${displayName} <span class="remove-tag" data-mailbox="${mailbox}">×</span>`;
+                tag.title = mailbox; // Full identity as title
+                selectedMailboxesContainer.appendChild(tag);
+            });
+
+            selectedMailboxesContainer.querySelectorAll('.remove-tag').forEach(span => {
+                span.onclick = (e) => {
+                    const mailboxToRemove = e.target.dataset.mailbox;
+                    selectedMailboxes.delete(mailboxToRemove);
+                    renderSelectedMailboxes();
+                    renderIndividualMailboxSections();
+                };
+            });
+            renderIndividualMailboxSections();
+        }
+
+        function renderIndividualMailboxSections() {
+            mailboxPermissionsContainer.innerHTML = '';
+            if (selectedMailboxes.size === 0) return;
+
+            Array.from(selectedMailboxes).sort().forEach(mailboxIdentity => {
+                const permissions = groupedMailboxData[mailboxIdentity] || [];
+                // Filter out 'NT AUTHORITY\SELF' as it's not directly modifiable via these scripts
+                const filteredPermissions = permissions.filter(p => p.user.toUpperCase() !== 'NT AUTHORITY\\SELF');
+
+                const section = document.createElement('div');
+                section.className = 'individual-mailbox-section';
+                
+                const title = document.createElement('div');
+                title.className = 'mailbox-title';
+                title.innerHTML = `<span>${mailboxIdentity}</span> <span class="mailbox-user-count">${filteredPermissions.length} utilisateur(s) modifiable(s)</span>`;
+                section.appendChild(title);
+
+                if (filteredPermissions.length > 0) {
+                    filteredPermissions.forEach(perm => {
+                        const card = document.createElement('div');
+                        card.className = 'user-permission-card';
+                        card.innerHTML = `
+                            <div class="info">
+                                <p><strong>Utilisateur:</strong> ${perm.user}</p>
+                                <p><strong>Droits:</strong> ${perm.accessRights.join(', ')}</p>
+                            </div>
+                            <div class="actions">
+                                <button type="button" class="button danger" onclick="addChangeToPending('remove', '${mailboxIdentity}', '${perm.user}', [${perm.accessRights.map(r => `'${r}'`).join(', ')}])">
+                                    Supprimer
+                                </button>
+                                <button type="button" class="button secondary" onclick="cloneChange('${mailboxIdentity}', '${perm.user}', [${perm.accessRights.map(r => `'${r}'`).join(', ')}])" title="Réutiliser cet utilisateur et ces droits pour une autre opération">
+                                    Cloner
+                                </button>
+                            </div>`;
+                        section.appendChild(card);
+                    });
+                } else {
+                    section.innerHTML += '<p style="font-family: Arial, sans-serif; font-style: italic; color: var(--text-muted);">Aucun utilisateur modifiable trouvé dans le fichier CSV pour cette boîte aux lettres.</p>';
+                }
+
+                // Add form for new permissions
+                const addUserSection = document.createElement('div');
+                addUserSection.className = 'mailbox-add-user';
+                addUserSection.innerHTML = `
+                    <h4>Ajouter une permission à ${mailboxIdentity} :</h4>
+                    <div class="input-group">
+                        <input type="text" placeholder="Ex: user@domain.com" class="add-user-input" id="add_user_input_${mailboxIdentity}">
+                        <button type="button" class="button success" onclick="addUserToSpecificMailbox('${mailboxIdentity}')">Ajouter à la liste</button>
+                    </div>
+                    <div class="rights-selection" style="font-family: Arial, sans-serif; margin-top: 5px;">
+                        <label><input type="checkbox" value="FullAccess" class="rights-checkbox" id="add_full_access_${mailboxIdentity}"> FullAccess</label>
+                        <label><input type="checkbox" value="SendAs" class="rights-checkbox" id="add_send_as_${mailboxIdentity}"> SendAs</label>
+                    </div>`;
+                section.appendChild(addUserSection);
+                mailboxPermissionsContainer.appendChild(section);
+            });
+        }
+
+        // --- Pending Operations Management ---
+
+        function addChangeToPending(actionType, mailboxIdentity, userToModify, accessRights) {
+            // Check for duplicates
+            const isDuplicate = pendingOperations.some(op =>
+                op.actionType === actionType &&
+                op.mailboxIdentity === mailboxIdentity &&
+                op.userToModify === userToModify &&
+                JSON.stringify(op.accessRights.sort()) === JSON.stringify(accessRights.sort())
+            );
+
+            if (isDuplicate) {
+                showSPAlert("Doublon détecté", "Cette modification est déjà dans la liste des opérations en attente.");
+                return;
+            }
+
+            // Ensure NT AUTHORITY\SELF isn't added for removal
+            if (actionType === 'remove' && userToModify.toUpperCase() === 'NT AUTHORITY\\SELF') {
+                showSPAlert("Accès restreint", "Impossible de supprimer 'NT AUTHORITY\\SELF'. C'est une permission système.");
+                return;
+            }
+
+            const newOperation = {
+                id: Date.now() + Math.random(), // Unique ID for each operation
+                actionType,
+                mailboxIdentity,
+                userToModify,
+                accessRights
+            };
+            pendingOperations.push(newOperation);
+            renderPendingOperations();
+            showSPAlert("Ajouté!", `L'opération '${actionType.toUpperCase()}' pour '${userToModify}' sur '${mailboxIdentity}' a été ajoutée.`);
+        }
+
+        function renderPendingOperations() {
+            changesTableBody.innerHTML = '';
+            if (pendingOperations.length === 0) {
+                changesTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
+                return;
+            }
+
+            pendingOperations.forEach(op => {
+                const row = document.createElement('tr');
+                row.dataset.id = op.id; // Store ID on the row for easy lookup
+                row.innerHTML = `
+                    <td><span class="tag ${op.actionType === 'add' ? 'success' : 'danger'}" style="min-width: 60px; justify-content: center;">${op.actionType.toUpperCase()}</span></td>
+                    <td>${op.mailboxIdentity}</td>
+                    <td>${op.userToModify}</td>
+                    <td>${op.accessRights.join(', ')}</td>
+                    <td class="action-cell">
+                        <button class="button danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
+                        <button class="button secondary" onclick="clonePendingOperation('${op.id}')">Cloner</button>
+                        <button class="button primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
+                    </td>
+                `;
+                changesTableBody.appendChild(row);
+            });
+        }
+
+        async function removePendingOperation(id) {
+            const confirmed = await showSPConfirm("Confirmation", "Es-tu sûr de vouloir supprimer cette opération de la liste ?");
+            if (!confirmed) return;
+
+            pendingOperations = pendingOperations.filter(op => op.id != id);
+            renderPendingOperations();
+            showSPAlert("Supprimé!", "L'opération a été retirée.");
+        }
+
+        function clonePendingOperation(id) {
+            const opToClone = pendingOperations.find(op => op.id == id);
+            if (opToClone) {
+                // Create a new operation object with a new ID
+                const clonedOp = { ...opToClone, id: Date.now() + Math.random() };
+                pendingOperations.push(clonedOp);
+                renderPendingOperations();
+                showSPAlert("Cloné!", "L'opération a été dupliquée.");
+            }
+        }
+
+        async function editPendingOperation(id) {
+            const opToEdit = pendingOperations.find(op => op.id == id);
+            if (!opToEdit) return;
+
+            const newMailbox = await showSPPrompt("Modifier Boîte aux lettres", `Nouvelle boîte aux lettres pour ${opToEdit.userToModify}:\n(Actuel: ${opToEdit.mailboxIdentity})`);
+            if (newMailbox === null) return; // Cancelled
+
+            const newUser = await showSPPrompt("Modifier Utilisateur", `Nouvel utilisateur pour ${opToEdit.mailboxIdentity}:\n(Actuel: ${opToEdit.userToModify})`);
+            if (newUser === null) return; // Cancelled
+
+            const newActionType = await showSPPrompt("Modifier Action (add/remove)", `Nouvelle action (add/remove):\n(Actuel: ${opToEdit.actionType})`);
+            if (newActionType === null) return; // Cancelled
+            if (!['add', 'remove'].includes(newActionType.toLowerCase())) {
+                await showSPAlert("Erreur de saisie", "L'action doit être 'add' ou 'remove'.");
+                return;
+            }
+
+            const newAccessRightsStr = await showSPPrompt("Modifier Droits (comma-separated)", `Nouveaux droits (ex: FullAccess, SendAs):\n(Actuel: ${opToEdit.accessRights.join(', ')})`);
+            if (newAccessRightsStr === null) return; // Cancelled
+            const newAccessRights = newAccessRightsStr.split(',').map(s => s.trim()).filter(Boolean);
+            if (newAccessRights.length === 0) {
+                await showSPAlert("Erreur de saisie", "Veuillez spécifier au moins un droit d'accès.");
+                return;
+            }
+
+            opToEdit.mailboxIdentity = newMailbox.trim();
+            opToEdit.userToModify = newUser.trim();
+            opToEdit.actionType = newActionType.toLowerCase();
+            opToEdit.accessRights = newAccessRights;
+
+            renderPendingOperations();
+            showSPAlert("Mis à jour!", "L'opération a été modifiée.");
+        }
+
+
+        async function clearAllChanges() {
+            const confirmed = await showSPConfirm("Attention!", "Es-tu sûr de vouloir EFFACER TOUTES les modifications en attente ? C'est irréversible !");
+            if (!confirmed) return;
+            pendingOperations = [];
+            renderPendingOperations();
+            powershellScriptOutput.value = '';
+            powershellScriptSection.style.display = 'none';
+            showSPAlert("Nettoyé!", "Toutes les modifications en attente ont été effacées.");
+        }
+
+        // --- Interaction Handlers ---
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileInfo.textContent = `Fichier sélectionné: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                fileInfo.className = 'file-info selected';
+                submitButton.disabled = false;
+            } else {
+                fileInfo.textContent = 'Aucun fichier sélectionné';
+                fileInfo.className = 'file-info';
+                submitButton.disabled = true;
+            }
+        });
+
+        mailboxSearchInput.addEventListener('input', function() {
+            const inputValue = this.value.toLowerCase();
+            autocompleteMailboxSuggestions.innerHTML = '';
+            if (inputValue.length === 0) return;
+            
+            const allMailboxNames = Array.from(uniqueMailboxIdentities).sort(); // Use the populated set
+            const filteredMailboxes = allMailboxNames.filter(name => name.toLowerCase().includes(inputValue));
+            
+            filteredMailboxes.forEach(mailbox => {
+                const div = document.createElement('div');
+                div.textContent = mailbox;
+                div.onclick = () => {
+                    if (!selectedMailboxes.has(mailbox)) {
+                        selectedMailboxes.add(mailbox);
+                        renderSelectedMailboxes();
+                    }
+                    mailboxSearchInput.value = '';
+                    autocompleteMailboxSuggestions.innerHTML = '';
+                };
+                autocompleteMailboxSuggestions.appendChild(div);
+            });
+        });
+
+        mailboxSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const mailboxToAdd = this.value.trim();
+                if (mailboxToAdd && !selectedMailboxes.has(mailboxToAdd)) {
+                    selectedMailboxes.add(mailboxToAdd);
+                    renderSelectedMailboxes();
+                }
+                this.value = '';
+                autocompleteMailboxSuggestions.innerHTML = '';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!mailboxSearchInput.contains(e.target) && !autocompleteMailboxSuggestions.contains(e.target)) {
+                autocompleteMailboxSuggestions.innerHTML = '';
+            }
+        });
+
+        async function addUserToSpecificMailbox(mailboxIdentity) {
+            const userInput = document.getElementById(`add_user_input_${mailboxIdentity}`);
+            const fullAccessCheckbox = document.getElementById(`add_full_access_${mailboxIdentity}`);
+            const sendAsCheckbox = document.getElementById(`add_send_as_${mailboxIdentity}`);
+            
+            const userToAdd = userInput.value.trim();
+            const accessRights = [];
+            if (fullAccessCheckbox.checked) accessRights.push('FullAccess');
+            if (sendAsCheckbox.checked) accessRights.push('SendAs');
+
+            if (!userToAdd) {
+                await showSPAlert("Attends!", "Faut saisir un utilisateur!");
+                return;
+            }
+            if (accessRights.length === 0) {
+                await showSPAlert("Oh!", "Faut cocher au moins un droit!");
+                return;
+            }
+
+            addChangeToPending('add', mailboxIdentity, userToAdd, accessRights);
+            
+            // Clear input fields after adding
+            userInput.value = '';
+            fullAccessCheckbox.checked = false;
+            sendAsCheckbox.checked = false;
+        }
+
+        function cloneChange(mailboxIdentity, user, accessRights) {
+            addChangeToPending('add', mailboxIdentity, user, accessRights);
+        }
+
+        async function generateFinalScript() {
+            if (pendingOperations.length === 0) {
+                await showSPAlert("Rien à faire", "Ajoutez des modifications à la liste avant de générer le script.");
+                return;
+            }
+
+            const authEnabled = enableAuthCheckbox.checked;
+            let username = '';
+            let password = '';
+            let domain = domainAdminInput.value.trim(); // Always get domain if auth is enabled
+
+            if (authEnabled) {
+                username = usernameAdminInput.value.trim();
+                // Prompt for password right before generating for security
+                password = await showSPPrompt("Mot de passe requis", "Veuillez saisir le mot de passe administrateur pour inclure les identifiants dans le script.");
+                if (password === null || password.trim() === '') {
+                    await showSPAlert("Opération annulée", "La génération du script nécessite le mot de passe.");
+                    return;
+                }
+                if (!username || !domain) {
+                    await showSPAlert("Informations manquantes", "Veuillez saisir le nom d'utilisateur et le domaine administrateur.");
+                    return;
+                }
+            } else {
+                 const confirmed = await showSPConfirm("Sans authentification", "Vous n'avez pas activé l'inclusion des identifiants. Le script généré ne se connectera pas automatiquement à Exchange Online. Assurez-vous d'être déjà connecté manuellement avant d'exécuter le script. Voulez-vous continuer ?");
+                 if (!confirmed) return;
+            }
+
+            try {
+                const response = await fetch('/generate_permission_script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operations: pendingOperations,
+                        username: username,
+                        password: password,
+                        domain: domain,
+                        auth_enabled: authEnabled
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    powershellScriptOutput.value = data.script_content;
+                    powershellScriptSection.style.display = 'block';
+                    await showSPAlert("Script généré!", "Le script PowerShell a été généré avec succès et affiché ci-dessous. Veuillez le vérifier attentivement avant exécution.");
+                } else {
+                    const errorData = await response.json();
+                    await showSPAlert("Erreur de génération", `Le script n'a pas pu être généré. Erreur: ${errorData.error || response.statusText}`);
+                }
+            } catch (error) {
+                await showSPAlert("Erreur réseau/système", "Une erreur est survenue lors de la communication avec le serveur. Vérifiez votre connexion.");
+                console.error('Error generating script:', error);
+            }
+        }
+
+        function copyScriptToClipboard() {
+            powershellScriptOutput.select();
+            document.execCommand('copy');
+            showSPAlert("Copié!", "Le script a été copié dans le presse-papiers.");
+        }
+
+        function downloadScriptFile() {
+            const scriptContent = powershellScriptOutput.value;
+            if (!scriptContent) {
+                showSPAlert("Rien à télécharger", "Aucun script n'est généré.");
+                return;
+            }
+            const blob = new Blob([scriptContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+            a.download = `GeneratedPermissionsScript_${timestamp}.ps1`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showSPAlert("Téléchargé!", "Le script a été téléchargé sur votre ordinateur.");
+        }
+
+        // --- Section Visibility Management ---
+        function showSection(sectionId) {
+            uploadSection.style.display = 'none';
+            manageSection.style.display = 'none';
+            document.getElementById(sectionId).style.display = 'block';
+
+            // Update button styles
+            showUploadBtn.classList.remove('primary');
+            showUploadBtn.classList.add('secondary');
+            showManageBtn.classList.remove('primary');
+            showManageBtn.classList.add('secondary');
+
+            if (sectionId === 'upload_section') {
+                showUploadBtn.classList.remove('secondary');
+                showUploadBtn.classList.add('primary');
+            } else if (sectionId === 'manage_permissions_section') {
+                showManageBtn.classList.remove('secondary');
+                showManageBtn.classList.add('primary');
+            }
+        }
+
+        showUploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('upload_section');
+        });
+
+        showManageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('manage_permissions_section');
+        });
+
+        // --- Initialization on Page Load ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if initial data was passed from server (after CSV upload redirect)
+            if (initialData && initialData.length > 0) {
+                processInitialData();
+                showSection('manage_permissions_section'); // Show manage section if data loaded
+            } else {
+                // If not, try to fetch it via API in case of direct access or refresh
+                try {
+                    const response = await fetch('/get_initial_data');
+                    if (response.ok) {
+                        const data = await response.json();
+                        initialData = data.initial_data;
+                        currentFilename = data.filename;
+                        processInitialData();
+                    }
+                } catch (error) {
+                    console.error('Error fetching initial data:', error);
+                }
+                showSection('upload_section'); // Default to upload if no data
+            }
+            toggleAuthentication(); // Set initial state of auth section
+            renderSelectedMailboxes(); // Render any initially selected mailboxes (should be none normally)
+            renderPendingOperations(); // Render empty pending ops table initially
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "name": "sharedmailbox-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Professional shared mailbox permissions management system with Exchange Online PowerShell integration.",
+  "keywords": [
+    "exchange-online",
+    "shared-mailbox",
+    "permissions",
+    "mailbox",
+    "powershell",
+    "enterprise",
+    "administration"
+  ],
+  "homepage": "https://github.com/Poutchouli/SharedMailbox_editor#readme",
+  "bugs": {
+    "url": "https://github.com/Poutchouli/SharedMailbox_editor/issues"
+  },
+  "license": "ISC",
+  "author": "Poutchouli",
+  "main": "app.py",
+  "type": "commonjs",
+  "scripts": {
+    "start": "python app.py",
+    "dev:frontend": "live-server --port=8080 --open=templates/",
+    "dev:backend": "nodemon app.py",
+    "watch:css": "sass --watch static/scss/style.scss:static/css/style.css",
+    "build:css": "sass --style=compressed static/scss/style.scss:static/css/style.css",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run watch:css\"",
+    "build": "npm run build:css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Poutchouli/SharedMailbox_editor.git"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "live-server": "^1.2.0",
+    "nodemon": "^3.1.10",
+    "sass": "^1.89.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
