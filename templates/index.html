@@ -8,6 +8,82 @@
     <style>
         /* Page-specific styles for the combined interface */
 
+        /* Action buttons styling */
+        .button-small {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-block;
+            transition: all 0.2s ease;
+            text-align: center;
+            min-width: 70px;
+            margin: 0 0.2rem;
+        }
+        
+        .button-small.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+        
+        .button-small.secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #475569);
+            color: white;
+        }
+        
+        .button-small.danger {
+            background: linear-gradient(135deg, var(--error-color), #dc2626);
+            color: white;
+        }
+        
+        .button-small:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .action-cell {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Styles pour le modal d'édition */
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: background-color 0.2s ease;
+        }
+        
+        .checkbox-group label:hover {
+            background-color: var(--background-secondary);
+        }
+
         /* Autocomplete List for Mailbox Search */
         .autocomplete-list { 
             border: 1px solid var(--border-color); 
@@ -726,9 +802,9 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                     <td>${op.userToModify}</td>
                     <td>${op.accessRights.join(', ')}</td>
                     <td class="action-cell">
-                        <button class="button danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
-                        <button class="button secondary" onclick="clonePendingOperation('${op.id}')">Cloner</button>
-                        <button class="button primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
+                        <button class="button-small primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
+                        <button class="button-small secondary" onclick="clonePendingOperation('${op.id}')">Cloner</button>
+                        <button class="button-small danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
                     </td>
                 `;
                 changesTableBody.appendChild(row);
@@ -736,12 +812,8 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
         }
 
         async function removePendingOperation(id) {
-            const confirmed = await showSPConfirm("Confirmation", "Es-tu sûr de vouloir supprimer cette opération de la liste ?");
-            if (!confirmed) return;
-
             pendingOperations = pendingOperations.filter(op => op.id != id);
             renderPendingOperations();
-            showSPAlert("Supprimé!", "L'opération a été retirée.");
         }
 
         function clonePendingOperation(id) {
@@ -751,7 +823,6 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                 const clonedOp = { ...opToClone, id: Date.now() + Math.random() };
                 pendingOperations.push(clonedOp);
                 renderPendingOperations();
-                showSPAlert("Cloné!", "L'opération a été dupliquée.");
             }
         }
 
@@ -759,45 +830,109 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
             const opToEdit = pendingOperations.find(op => op.id == id);
             if (!opToEdit) return;
 
-            const newMailbox = await showSPPrompt("Modifier Boîte aux lettres", `Nouvelle boîte aux lettres pour ${opToEdit.userToModify}:\n(Actuel: ${opToEdit.mailboxIdentity})`);
-            if (newMailbox === null) return; // Cancelled
-
-            const newUser = await showSPPrompt("Modifier Utilisateur", `Nouvel utilisateur pour ${opToEdit.mailboxIdentity}:\n(Actuel: ${opToEdit.userToModify})`);
-            if (newUser === null) return; // Cancelled
-
-            const newActionType = await showSPPrompt("Modifier Action (add/remove)", `Nouvelle action (add/remove):\n(Actuel: ${opToEdit.actionType})`);
-            if (newActionType === null) return; // Cancelled
-            if (!['add', 'remove'].includes(newActionType.toLowerCase())) {
-                await showSPAlert("Erreur de saisie", "L'action doit être 'add' ou 'remove'.");
-                return;
-            }
-
-            const newAccessRightsStr = await showSPPrompt("Modifier Droits (comma-separated)", `Nouveaux droits (ex: FullAccess, SendAs):\n(Actuel: ${opToEdit.accessRights.join(', ')})`);
-            if (newAccessRightsStr === null) return; // Cancelled
-            const newAccessRights = newAccessRightsStr.split(',').map(s => s.trim()).filter(Boolean);
-            if (newAccessRights.length === 0) {
-                await showSPAlert("Erreur de saisie", "Veuillez spécifier au moins un droit d'accès.");
-                return;
-            }
-
-            opToEdit.mailboxIdentity = newMailbox.trim();
-            opToEdit.userToModify = newUser.trim();
-            opToEdit.actionType = newActionType.toLowerCase();
-            opToEdit.accessRights = newAccessRights;
-
-            renderPendingOperations();
-            showSPAlert("Mis à jour!", "L'opération a été modifiée.");
+            // Créer un modal personnalisé pour l'édition avec des cases à cocher
+            const editModal = document.createElement('div');
+            editModal.className = 'sp-modal-overlay';
+            editModal.style.display = 'flex';
+            
+            const hasFullAccess = opToEdit.accessRights.includes('FullAccess');
+            const hasSendAs = opToEdit.accessRights.includes('SendAs');
+            
+            editModal.innerHTML = `
+                <div class="sp-modal">
+                    <h3>Modifier l'opération</h3>
+                    <div style="text-align: left; margin: 1rem 0;">
+                        <div class="form-group">
+                            <label>Boîte aux lettres:</label>
+                            <input type="text" id="edit-mailbox" value="${opToEdit.mailboxIdentity}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Utilisateur:</label>
+                            <input type="text" id="edit-user" value="${opToEdit.userToModify}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Action:</label>
+                            <select id="edit-action" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                                <option value="add" ${opToEdit.actionType === 'add' ? 'selected' : ''}>Ajouter (add)</option>
+                                <option value="remove" ${opToEdit.actionType === 'remove' ? 'selected' : ''}>Supprimer (remove)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Droits d'accès:</label>
+                            <div class="checkbox-group">
+                                <label>
+                                    <input type="checkbox" id="edit-fullaccess" ${hasFullAccess ? 'checked' : ''}>
+                                    FullAccess
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="edit-sendas" ${hasSendAs ? 'checked' : ''}>
+                                    SendAs
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sp-modal-buttons">
+                        <button class="button primary" onclick="saveEditedOperation('${id}')">Sauvegarder</button>
+                        <button class="button secondary" onclick="cancelEditOperation()">Annuler</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            
+            // Ajouter les fonctions globales temporaires
+            window.saveEditedOperation = async function(operationId) {
+                const mailbox = document.getElementById('edit-mailbox').value.trim();
+                const user = document.getElementById('edit-user').value.trim();
+                const action = document.getElementById('edit-action').value;
+                const fullAccess = document.getElementById('edit-fullaccess').checked;
+                const sendAs = document.getElementById('edit-sendas').checked;
+                
+                if (!mailbox || !user) {
+                    await showSPAlert("Erreur", "Veuillez remplir tous les champs obligatoires.");
+                    return;
+                }
+                
+                const accessRights = [];
+                if (fullAccess) accessRights.push('FullAccess');
+                if (sendAs) accessRights.push('SendAs');
+                
+                if (accessRights.length === 0) {
+                    await showSPAlert("Erreur", "Veuillez sélectionner au moins un droit d'accès.");
+                    return;
+                }
+                
+                // Mettre à jour l'opération
+                opToEdit.mailboxIdentity = mailbox;
+                opToEdit.userToModify = user;
+                opToEdit.actionType = action;
+                opToEdit.accessRights = accessRights;
+                
+                // Fermer le modal et rafraîchir
+                document.body.removeChild(editModal);
+                delete window.saveEditedOperation;
+                delete window.cancelEditOperation;
+                renderPendingOperations();
+                await showSPAlert("Mis à jour!", "L'opération a été modifiée avec succès.");
+            };
+            
+            window.cancelEditOperation = function() {
+                document.body.removeChild(editModal);
+                delete window.saveEditedOperation;
+                delete window.cancelEditOperation;
+            };
         }
 
 
         async function clearAllChanges() {
             const confirmed = await showSPConfirm("Attention!", "Es-tu sûr de vouloir EFFACER TOUTES les modifications en attente ? C'est irréversible !");
             if (!confirmed) return;
+            
             pendingOperations = [];
             renderPendingOperations();
             powershellScriptOutput.value = '';
             powershellScriptSection.style.display = 'none';
-            showSPAlert("Nettoyé!", "Toutes les modifications en attente ont été effacées.");
+            await showSPAlert("Nettoyé!", "Toutes les modifications en attente ont été effacées.");
         }
 
         // --- Interaction Handlers ---
