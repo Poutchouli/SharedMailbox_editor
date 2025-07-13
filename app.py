@@ -6,6 +6,9 @@ import base64
 import datetime
 import logging
 import traceback
+import json
+import tempfile
+from pathlib import Path
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24) # Used for session management
@@ -13,16 +16,65 @@ app.secret_key = os.urandom(24) # Used for session management
 # Configuration: Set to True to require authentication credentials
 REQUIRE_AUTHENTICATION = False
 
+# Maximum file size for CSV uploads (in bytes) - 50MB
+MAX_CSV_SIZE = 50 * 1024 * 1024  # 50MB
+
+# Create a temporary directory for storing uploaded CSV data
+TEMP_DATA_DIR = Path(tempfile.gettempdir()) / "sharedmailbox_editor"
+TEMP_DATA_DIR.mkdir(exist_ok=True)
+
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def generate_session_id():
+    """Generate a unique session ID for data storage"""
+    import uuid
+    return str(uuid.uuid4())
+
+def save_session_data(session_id, data, filename):
+    """Save session data to temporary file"""
+    data_file = TEMP_DATA_DIR / f"{session_id}_data.json"
+    session_info = {
+        'data': data,
+        'filename': filename,
+        'timestamp': datetime.datetime.now().isoformat()
+    }
+    with open(data_file, 'w', encoding='utf-8') as f:
+        json.dump(session_info, f, ensure_ascii=False)
+
+def load_session_data(session_id):
+    """Load session data from temporary file"""
+    data_file = TEMP_DATA_DIR / f"{session_id}_data.json"
+    if data_file.exists():
+        try:
+            with open(data_file, 'r', encoding='utf-8') as f:
+                session_info = json.load(f)
+            return session_info.get('data', []), session_info.get('filename', 'Fichier inconnu')
+        except Exception as e:
+            logger.error(f"Error loading session data: {e}")
+            return [], "Erreur de chargement"
+    return [], "Aucun fichier chargé"
+
+def cleanup_old_session_files():
+    """Clean up session files older than 24 hours"""
+    try:
+        cutoff_time = datetime.datetime.now() - datetime.timedelta(hours=24)
+        for file_path in TEMP_DATA_DIR.glob("*_data.json"):
+            if file_path.stat().st_mtime < cutoff_time.timestamp():
+                file_path.unlink()
+    except Exception as e:
+        logger.error(f"Error cleaning up old files: {e}")
 
 @app.errorhandler(404)
 def handle_404_error(e):
     if request.path == '/favicon.ico':
         return '', 404
     logger.warning(f"404 Not Found: {request.path}")
-    return render_template('index.html', error="Page non trouvée. Retour à l'accueil."), 404
+    return render_template('index.html',
+                           error="Page non trouvée. Retour à l'accueil.",
+                           initial_data=[],
+                           filename="Aucun fichier chargé"), 404
 
 @app.errorhandler(Exception)
 def handle_general_exception(e):
@@ -48,16 +100,29 @@ def handle_general_exception(e):
         return jsonify(error=f"Une erreur inattendue s'est produite : {str(e)}"), 500
     else:
         # For general errors, try to render the main page with an error message
-        return render_template('index.html', error=f"Une erreur inattendue s'est produite : {str(e)}. Veuillez vérifier les logs pour plus de détails."), 500
+        return render_template('index.html',
+                               error=f"Une erreur inattendue s'est produite : {str(e)}. Veuillez vérifier les logs pour plus de détails.",
+                               initial_data=[],
+                               filename="Aucun fichier chargé"), 500
 
 @app.route('/')
 def index():
     """
-    Rend la page d'accueil unique. Le JavaScript côté client gérera le contenu dynamique.
-    Initial_data est passé pour pré-remplir si l'utilisateur vient d'un upload.
+    Page principale de l'application. Affiche les données CSV si disponibles dans la session.
     """
-    initial_data = session.pop('initial_data', [])
-    filename = session.pop('filename', "Aucun fichier chargé")
+    # Clean up old files periodically
+    cleanup_old_session_files()
+    
+    # Get session ID from cookie or URL parameter
+    session_id = request.args.get('session_id') or session.get('session_id')
+    initial_data = []
+    filename = "Aucun fichier chargé"
+    
+    if session_id:
+        initial_data, filename = load_session_data(session_id)
+        # Store session_id in session for future use
+        session['session_id'] = session_id
+    
     return render_template('index.html', initial_data=initial_data, filename=filename)
 
 @app.route('/favicon.ico')
@@ -99,6 +164,17 @@ def upload_file():
         if not file.filename.lower().endswith('.csv'):
             return render_template('index.html', error="Veuillez sélectionner un fichier CSV (.csv).")
         
+        # Check file size before processing
+        file.seek(0, 2)  # Seek to end of file
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > MAX_CSV_SIZE:
+            size_mb = file_size / (1024 * 1024)
+            max_size_mb = MAX_CSV_SIZE / (1024 * 1024)
+            return render_template('index.html', 
+                                   error=f"Le fichier est trop volumineux ({size_mb:.1f}MB). La taille maximale autorisée est de {max_size_mb:.0f}MB.")
+        
         if file:
             logger.debug(f"Processing file: {file.filename}")
             
@@ -136,11 +212,14 @@ def upload_file():
 
             data_to_display = df.to_dict(orient='records')
             
-            # Store data and filename in session to pass to the main page
-            session['initial_data'] = data_to_display
-            session['filename'] = file.filename
+            # Generate session ID and save data to temporary file instead of session
+            session_id = generate_session_id()
+            save_session_data(session_id, data_to_display, file.filename)
             
-            return redirect(url_for('index'))
+            # Store only the session ID in the session (much smaller)
+            session['session_id'] = session_id
+            
+            return redirect(url_for('index', session_id=session_id))
         else:
             return render_template('index.html', error="Fichier invalide.")
             
@@ -153,8 +232,13 @@ def get_initial_data():
     """
     Endpoint for client-side JavaScript to fetch initial data after an upload or direct access.
     """
-    initial_data = session.pop('initial_data', [])
-    filename = session.pop('filename', "Aucun fichier chargé")
+    session_id = session.get('session_id')
+    initial_data = []
+    filename = "Aucun fichier chargé"
+    
+    if session_id:
+        initial_data, filename = load_session_data(session_id)
+    
     return jsonify(initial_data=initial_data, filename=filename)
 
 

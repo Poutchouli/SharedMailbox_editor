@@ -324,17 +324,52 @@
         #changes_to_apply_section {
             margin-top: 2rem;
         }
+        
+        /* Table wrapper for horizontal scroll on small screens */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+        
         #changes_to_apply_table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
+            table-layout: fixed; /* Fixed layout for better control */
         }
         #changes_to_apply_table th, #changes_to_apply_table td {
             border: 1px solid var(--border-color);
             padding: 0.75rem;
             text-align: left;
             font-size: 0.9em;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
+        
+        /* Specific column width controls - no minimum table width */
+        #changes_to_apply_table th:nth-child(1), 
+        #changes_to_apply_table td:nth-child(1) { /* Action column */
+            width: 12%;
+        }
+        #changes_to_apply_table th:nth-child(2), 
+        #changes_to_apply_table td:nth-child(2) { /* Mailbox column */
+            width: 35%;
+        }
+        #changes_to_apply_table th:nth-child(3), 
+        #changes_to_apply_table td:nth-child(3) { /* User column */
+            width: 35%;
+        }
+        #changes_to_apply_table th:nth-child(4), 
+        #changes_to_apply_table td:nth-child(4) { /* Rights column */
+            width: 18%;
+        }
+        #changes_to_apply_table th:nth-child(5), 
+        #changes_to_apply_table td:nth-child(5) { /* Actions column - now only Modifier button */
+            width: 12%;
+        }
+        
         #changes_to_apply_table th {
             background-color: var(--background-secondary);
             font-weight: 600;
@@ -350,11 +385,98 @@
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
         .action-cell .button {
             padding: 0.5rem 0.75rem;
             font-size: 0.8em;
             min-width: unset;
+            white-space: nowrap;
+        }
+        
+        /* Small X button for delete action */
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--error-color);
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+            transform: scale(1.1);
+        }
+        
+        /* Adjust table row positioning for the X button */
+        #changes_to_apply_table tbody tr {
+            position: relative;
+        }
+        
+        #changes_to_apply_table tbody tr:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        /* Responsive adjustments for the table */
+        @media (max-width: 1200px) {
+            #changes_to_apply_table th, #changes_to_apply_table td {
+                padding: 0.5rem;
+                font-size: 0.85em;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #changes_to_apply_table th, #changes_to_apply_table td {
+                padding: 0.4rem;
+                font-size: 0.8em;
+            }
+            .action-cell .button {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75em;
+            }
+            /* Adjust delete button for mobile */
+            .delete-btn {
+                width: 18px;
+                height: 18px;
+                font-size: 11px;
+                top: -6px;
+                right: -6px;
+            }
+            /* Adjust column widths for mobile */
+            #changes_to_apply_table th:nth-child(1), 
+            #changes_to_apply_table td:nth-child(1) { /* Action column */
+                width: 14%;
+            }
+            #changes_to_apply_table th:nth-child(2), 
+            #changes_to_apply_table td:nth-child(2) { /* Mailbox column */
+                width: 32%;
+            }
+            #changes_to_apply_table th:nth-child(3), 
+            #changes_to_apply_table td:nth-child(3) { /* User column */
+                width: 32%;
+            }
+            #changes_to_apply_table th:nth-child(4), 
+            #changes_to_apply_table td:nth-child(4) { /* Rights column */
+                width: 16%;
+            }
+            #changes_to_apply_table th:nth-child(5), 
+            #changes_to_apply_table td:nth-child(5) { /* Actions column */
+                width: 14%;
+            }
         }
         
         /* PowerShell Script Output */
@@ -435,7 +557,7 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                         Aucun fichier sélectionné
                     </div>
                     <small class="helper-text">
-                        Formats acceptés: .csv (taille max recommandée: 5MB)
+                        Formats acceptés: .csv (taille max: 50MB)
                     </small>
                 </div>
                 <div class="submit-section">
@@ -485,21 +607,20 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
             <div id="changes_to_apply_section" class="form-section">
                 <h2>3. Modifications à appliquer</h2>
                 <p class="info">Ces opérations seront incluses dans le script PowerShell final.</p>
-                <table id="changes_to_apply_table">
-                    <thead>
-                        <tr>
-                            <th>Action</th>
-                            <th>Boîte aux lettres</th>
-                            <th>Utilisateur</th>
-                            <th>Droits</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <div class="button-container-right">
-                    <button class="button danger" onclick="clearAllChanges()">Effacer toutes les modifications</button>
+                <div class="table-wrapper">
+                    <table id="changes_to_apply_table">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Boîte aux lettres</th>
+                                <th>Utilisateur</th>
+                                <th>Droits</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -510,7 +631,7 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
 
             <div class="submit-section">
                 <button type="button" class="button primary" onclick="generateFinalScript()">
-                    Générer le script PowerShell final
+                    Télécharger le script PowerShell (.ps1)
                 </button>
             </div>
 
@@ -843,11 +964,8 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
         }
 
         function renderPendingOperations() {
-            console.log('renderPendingOperations called, pendingOperations.length:', pendingOperations.length);
-            
             // Re-sélectionner l'élément pour être sûr qu'il existe
             const tableBody = document.querySelector('#changes_to_apply_table tbody');
-            console.log('tableBody found:', !!tableBody);
             
             if (tableBody) {
                 // Vider complètement le contenu existant
@@ -855,11 +973,9 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                 
                 if (pendingOperations.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
-                    console.log('Table cleared - showing empty message');
                     return;
                 }
 
-                console.log('Rendering', pendingOperations.length, 'operations');
                 pendingOperations.forEach(op => {
                     const row = document.createElement('tr');
                     row.dataset.id = op.id; // Store ID on the row for easy lookup
@@ -869,14 +985,8 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                         <td>${op.userToModify}</td>
                         <td>${op.accessRights.join(', ')}</td>
                         <td class="action-cell">
-                            <div class="action-cell-container">
-                                <div class="action-zone left">
-                                    <button class="button-small primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
-                                </div>
-                                <div class="action-zone right">
-                                    <button class="button-small danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
-                                </div>
-                            </div>
+                            <button class="button-small primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
+                            <div class="delete-btn" onclick="removePendingOperation('${op.id}')" title="Supprimer cette modification">×</div>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -1000,43 +1110,6 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
             };
         }
 
-
-        async function clearAllChanges() {
-            console.log('clearAllChanges called');
-            const confirmed = await showSPConfirm("Attention!", "Es-tu sûr de vouloir EFFACER TOUTES les modifications en attente ? C'est irréversible !");
-            if (!confirmed) {
-                console.log('User cancelled clear operation');
-                return;
-            }
-            
-            console.log('Before clearing - pendingOperations.length:', pendingOperations.length);
-            
-            // Vider complètement le tableau
-            pendingOperations.splice(0); // Alternative plus robuste
-            
-            console.log('After clearing - pendingOperations.length:', pendingOperations.length);
-            
-            // Forcer le rafraîchissement de l'affichage avec plusieurs méthodes
-            setTimeout(() => {
-                renderPendingOperations();
-            }, 10);
-            
-            // Forcer aussi une mise à jour immédiate
-            const tableBody = document.querySelector('#changes_to_apply_table tbody');
-            if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
-            }
-            
-            // Vider et cacher la section script PowerShell
-            if (powershellScriptOutput) {
-                powershellScriptOutput.value = '';
-            }
-            if (powershellScriptSection) {
-                powershellScriptSection.style.display = 'none';
-            }
-            
-            await showSPAlert("Nettoyé!", "Toutes les modifications en attente ont été effacées.");
-        }
 
         // --- Autocomplete Functions ---
         
@@ -1243,9 +1316,25 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
 
                 if (response.ok) {
                     const data = await response.json();
-                    powershellScriptOutput.value = data.script_content;
+                    const scriptContent = data.script_content;
+                    
+                    // Update the display area
+                    powershellScriptOutput.value = scriptContent;
                     powershellScriptSection.style.display = 'block';
-                    await showSPAlert("Script généré!", "Le script PowerShell a été généré avec succès et affiché ci-dessous. Veuillez le vérifier attentivement avant exécution.");
+                    
+                    // Automatically download the script file
+                    const blob = new Blob([scriptContent], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const timestamp = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15);
+                    a.download = `GeneratedPermissionsScript_${timestamp}.ps1`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    await showSPAlert("Script généré et téléchargé!", "Le script PowerShell a été généré avec succès et téléchargé automatiquement. Vous pouvez également le voir ci-dessous pour vérification.");
                 } else {
                     const errorData = await response.json();
                     await showSPAlert("Erreur de génération", `Le script n'a pas pu être généré. Erreur: ${errorData.error || response.statusText}`);

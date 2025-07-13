@@ -1,0 +1,98 @@
+Connect-ExchangeOnline
+
+Add-MailboxPermission -Identity stsauveurlevicomte@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity stsauveurlevicomte@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity carentan@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity carentan@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity coeurcotentin@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity coeurcotentin@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity periers@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity periers@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity stpierreeglise@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity stpierreeglise@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity montebourg@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity montebourg@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Remove-MailboxPermission -Identity stsauveurlendelin@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity stsauveurlendelin@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Remove-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Remove-MailboxPermission -Identity coutances@admr50.fr -User TEMP17 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity coutances@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Remove-RecipientPermission -Identity $NameMailBox -Trustee TEMP17 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity coutances@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity coutances@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity stsauveurlendelin@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity stsauveurlendelin@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity cherbourg@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity cherbourg@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity stsauveurlevicomte@admr50.fr -User TEMP1 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity stsauveurlevicomte@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP1 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity torigni@admr50.fr -User kdebaize -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity torigni@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee kdebaize -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity quettehou@admr50.fr -User kdebaize -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity quettehou@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee kdebaize -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity quettehou@admr50.fr -User alienard -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity quettehou@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee alienard -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity torigni@admr50.fr -User alienard -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity torigni@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee alienard -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity lessay@admr50.fr -User alienard -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity lessay@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee alienard -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity sourdeval@admr50.fr -User TEMP9 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity sourdeval@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP9 -AccessRights SendAs -Confirm:$false
+Add-MailboxPermission -Identity avranches@admr50.fr -User TEMP9 -AccessRights FullAccess -InheritanceType All -Confirm:$false
+$NameMailBox = Get-EXOMailbox -Identity avranches@admr50.fr  | select-object Name
+$NameMailBox = $NameMailBox -replace '@{Name=',''
+$NameMailBox = $NameMailBox -replace '}',''
+Add-RecipientPermission -Identity $NameMailBox -Trustee TEMP9 -AccessRights SendAs -Confirm:$false
+Disconnect-ExchangeOnline -Confirm:$false
