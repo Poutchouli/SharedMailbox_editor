@@ -47,6 +47,48 @@
         .action-cell {
             white-space: nowrap;
             text-align: center;
+            padding: 0 !important;
+        }
+        
+        .action-cell-container {
+            display: flex;
+            height: 100%;
+            min-height: 60px;
+        }
+        
+        .action-zone {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+        }
+        
+        .action-zone.left {
+            border-right: 1px solid var(--border-color);
+            background-color: #f0fdf4;
+        }
+        
+        .action-zone.right {
+            background-color: #fef2f2;
+        }
+        
+        /* Responsive design for action zones */
+        @media (max-width: 768px) {
+            .action-cell-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+            
+            .action-zone {
+                flex: none;
+                padding: 0.3rem;
+            }
+            
+            .action-zone.left {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
         }
 
         /* Styles pour le modal d'édition */
@@ -82,6 +124,30 @@
         
         .checkbox-group label:hover {
             background-color: var(--background-secondary);
+        }
+        
+        /* Search container for autocomplete */
+        .search-container {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .input-group .search-container {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .input-group .button {
+            flex-shrink: 0;
+            align-self: flex-start;
         }
 
         /* Autocomplete List for Mailbox Search */
@@ -312,7 +378,7 @@
     </style>
 </head>
 <body>
-    <datalist id="user-suggestions"></datalist>
+
     <div class="container">
         <h1>SharedMailbox Editor</h1>
         
@@ -606,19 +672,6 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                 }
             });
             updateFileInfo();
-            populateUserDatalist(); // Call function to update datalist
-        }
-
-        function populateUserDatalist() {
-            const datalist = document.getElementById('user-suggestions');
-            datalist.innerHTML = ''; // Clear existing options
-            Array.from(allCsvUsers).sort().forEach(user => {
-                if (user.toUpperCase() !== 'NT AUTHORITY\\SELF') {
-                    const option = document.createElement('option');
-                    option.value = user;
-                    datalist.appendChild(option);
-                }
-            });
         }
 
         function updateFileInfo() {
@@ -707,9 +760,6 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                                 <button type="button" class="button danger" onclick="addChangeToPending('remove', '${mailboxIdentity}', '${perm.user}', [${perm.accessRights.map(r => `'${r}'`).join(', ')}])">
                                     Supprimer
                                 </button>
-                                <button type="button" class="button secondary" onclick="cloneChange('${mailboxIdentity}', '${perm.user}', [${perm.accessRights.map(r => `'${r}'`).join(', ')}])" title="Réutiliser cet utilisateur et ces droits pour une autre opération">
-                                    Cloner
-                                </button>
                             </div>`;
                         section.appendChild(card);
                     });
@@ -723,7 +773,10 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                 addUserSection.innerHTML = `
                     <h4>Ajouter une permission à ${mailboxIdentity} :</h4>
                     <div class="input-group">
-                        <input type="text" placeholder="Ex: user@domain.com" class="add-user-input" id="add_user_input_${mailboxIdentity}" list="user-suggestions">
+                        <div class="search-container">
+                            <input type="text" placeholder="Ex: user@domain.com" class="add-user-input" id="add_user_input_${mailboxIdentity}">
+                            <div id="autocomplete_user_suggestions_${mailboxIdentity}" class="autocomplete-list"></div>
+                        </div>
                         <button type="button" class="button success" onclick="addUserToSpecificMailbox('${mailboxIdentity}')">Ajouter à la liste</button>
                     </div>
                     <div class="rights-selection">
@@ -732,6 +785,9 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                     </div>`;
                 section.appendChild(addUserSection);
                 mailboxPermissionsContainer.appendChild(section);
+                
+                // Setup autocomplete for this mailbox's user input
+                setupUserAutocomplete(`add_user_input_${mailboxIdentity}`, `autocomplete_user_suggestions_${mailboxIdentity}`);
             });
 
             // Add event listeners for new controls
@@ -787,43 +843,52 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
         }
 
         function renderPendingOperations() {
-            changesTableBody.innerHTML = '';
-            if (pendingOperations.length === 0) {
-                changesTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
-                return;
-            }
+            console.log('renderPendingOperations called, pendingOperations.length:', pendingOperations.length);
+            
+            // Re-sélectionner l'élément pour être sûr qu'il existe
+            const tableBody = document.querySelector('#changes_to_apply_table tbody');
+            console.log('tableBody found:', !!tableBody);
+            
+            if (tableBody) {
+                // Vider complètement le contenu existant
+                tableBody.innerHTML = '';
+                
+                if (pendingOperations.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
+                    console.log('Table cleared - showing empty message');
+                    return;
+                }
 
-            pendingOperations.forEach(op => {
-                const row = document.createElement('tr');
-                row.dataset.id = op.id; // Store ID on the row for easy lookup
-                row.innerHTML = `
-                    <td><span class="tag ${op.actionType === 'add' ? 'success' : 'danger'}" style="min-width: 60px; justify-content: center;">${op.actionType.toUpperCase()}</span></td>
-                    <td>${op.mailboxIdentity}</td>
-                    <td>${op.userToModify}</td>
-                    <td>${op.accessRights.join(', ')}</td>
-                    <td class="action-cell">
-                        <button class="button-small primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
-                        <button class="button-small secondary" onclick="clonePendingOperation('${op.id}')">Cloner</button>
-                        <button class="button-small danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
-                    </td>
-                `;
-                changesTableBody.appendChild(row);
-            });
+                console.log('Rendering', pendingOperations.length, 'operations');
+                pendingOperations.forEach(op => {
+                    const row = document.createElement('tr');
+                    row.dataset.id = op.id; // Store ID on the row for easy lookup
+                    row.innerHTML = `
+                        <td><span class="tag ${op.actionType === 'add' ? 'success' : 'danger'}" style="min-width: 60px; justify-content: center;">${op.actionType.toUpperCase()}</span></td>
+                        <td>${op.mailboxIdentity}</td>
+                        <td>${op.userToModify}</td>
+                        <td>${op.accessRights.join(', ')}</td>
+                        <td class="action-cell">
+                            <div class="action-cell-container">
+                                <div class="action-zone left">
+                                    <button class="button-small primary" onclick="editPendingOperation('${op.id}')">Modifier</button>
+                                </div>
+                                <div class="action-zone right">
+                                    <button class="button-small danger" onclick="removePendingOperation('${op.id}')">Supprimer</button>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                console.error('changesTableBody not found!');
+            }
         }
 
         async function removePendingOperation(id) {
             pendingOperations = pendingOperations.filter(op => op.id != id);
             renderPendingOperations();
-        }
-
-        function clonePendingOperation(id) {
-            const opToClone = pendingOperations.find(op => op.id == id);
-            if (opToClone) {
-                // Create a new operation object with a new ID
-                const clonedOp = { ...opToClone, id: Date.now() + Math.random() };
-                pendingOperations.push(clonedOp);
-                renderPendingOperations();
-            }
         }
 
         async function editPendingOperation(id) {
@@ -844,11 +909,17 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
                     <div style="text-align: left; margin: 1rem 0;">
                         <div class="form-group">
                             <label>Boîte aux lettres:</label>
-                            <input type="text" id="edit-mailbox" value="${opToEdit.mailboxIdentity}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                            <div class="search-container">
+                                <input type="text" id="edit-mailbox" value="${opToEdit.mailboxIdentity}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                                <div id="autocomplete_edit_mailbox_suggestions" class="autocomplete-list"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Utilisateur:</label>
-                            <input type="text" id="edit-user" value="${opToEdit.userToModify}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                            <div class="search-container">
+                                <input type="text" id="edit-user" value="${opToEdit.userToModify}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0;">
+                                <div id="autocomplete_edit_user_suggestions" class="autocomplete-list"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Action:</label>
@@ -879,6 +950,12 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
             `;
             
             document.body.appendChild(editModal);
+            
+            // Setup autocomplete for mailbox field in edit modal
+            setupMailboxAutocomplete('edit-mailbox', 'autocomplete_edit_mailbox_suggestions');
+            
+            // Setup autocomplete for user field in edit modal
+            setupUserAutocomplete('edit-user', 'autocomplete_edit_user_suggestions');
             
             // Ajouter les fonctions globales temporaires
             window.saveEditedOperation = async function(operationId) {
@@ -925,15 +1002,119 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
 
 
         async function clearAllChanges() {
+            console.log('clearAllChanges called');
             const confirmed = await showSPConfirm("Attention!", "Es-tu sûr de vouloir EFFACER TOUTES les modifications en attente ? C'est irréversible !");
-            if (!confirmed) return;
+            if (!confirmed) {
+                console.log('User cancelled clear operation');
+                return;
+            }
             
-            pendingOperations = [];
-            renderPendingOperations();
-            powershellScriptOutput.value = '';
-            powershellScriptSection.style.display = 'none';
+            console.log('Before clearing - pendingOperations.length:', pendingOperations.length);
+            
+            // Vider complètement le tableau
+            pendingOperations.splice(0); // Alternative plus robuste
+            
+            console.log('After clearing - pendingOperations.length:', pendingOperations.length);
+            
+            // Forcer le rafraîchissement de l'affichage avec plusieurs méthodes
+            setTimeout(() => {
+                renderPendingOperations();
+            }, 10);
+            
+            // Forcer aussi une mise à jour immédiate
+            const tableBody = document.querySelector('#changes_to_apply_table tbody');
+            if (tableBody) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Aucune modification en attente.</td></tr>';
+            }
+            
+            // Vider et cacher la section script PowerShell
+            if (powershellScriptOutput) {
+                powershellScriptOutput.value = '';
+            }
+            if (powershellScriptSection) {
+                powershellScriptSection.style.display = 'none';
+            }
+            
             await showSPAlert("Nettoyé!", "Toutes les modifications en attente ont été effacées.");
         }
+
+        // --- Autocomplete Functions ---
+        
+        function setupMailboxAutocomplete(inputId, suggestionsId) {
+            const input = document.getElementById(inputId);
+            const suggestions = document.getElementById(suggestionsId);
+            
+            if (!input || !suggestions) return;
+            
+            // Remove existing listeners to avoid duplicates
+            input.removeEventListener('input', input.mailboxAutocompleteHandler);
+            
+            input.mailboxAutocompleteHandler = function() {
+                const inputValue = this.value.toLowerCase();
+                suggestions.innerHTML = '';
+                if (inputValue.length === 0) return;
+                
+                const allMailboxNames = Array.from(uniqueMailboxIdentities).sort();
+                const filteredMailboxes = allMailboxNames.filter(name => name.toLowerCase().includes(inputValue));
+                
+                filteredMailboxes.slice(0, 10).forEach(mailbox => {
+                    const div = document.createElement('div');
+                    div.textContent = mailbox;
+                    div.onclick = () => {
+                        input.value = mailbox;
+                        suggestions.innerHTML = '';
+                    };
+                    suggestions.appendChild(div);
+                });
+            };
+            
+            input.addEventListener('input', input.mailboxAutocompleteHandler);
+        }
+        
+        function setupUserAutocomplete(inputId, suggestionsId) {
+            const input = document.getElementById(inputId);
+            const suggestions = document.getElementById(suggestionsId);
+            
+            if (!input || !suggestions) return;
+            
+            // Remove existing listeners to avoid duplicates
+            input.removeEventListener('input', input.userAutocompleteHandler);
+            
+            input.userAutocompleteHandler = function() {
+                const inputValue = this.value.toLowerCase();
+                suggestions.innerHTML = '';
+                if (inputValue.length === 0) return;
+                
+                const allUsers = Array.from(allCsvUsers).sort();
+                const filteredUsers = allUsers.filter(user => 
+                    user.toLowerCase().includes(inputValue) && 
+                    user.toUpperCase() !== 'NT AUTHORITY\\SELF'
+                );
+                
+                filteredUsers.slice(0, 10).forEach(user => {
+                    const div = document.createElement('div');
+                    div.textContent = user;
+                    div.onclick = () => {
+                        input.value = user;
+                        suggestions.innerHTML = '';
+                    };
+                    suggestions.appendChild(div);
+                });
+            };
+            
+            input.addEventListener('input', input.userAutocompleteHandler);
+        }
+        
+        // Global click handler to close all autocomplete suggestions
+        document.addEventListener('click', function(e) {
+            // Close all autocomplete suggestions when clicking outside
+            document.querySelectorAll('.autocomplete-list').forEach(suggestions => {
+                const relatedInput = suggestions.previousElementSibling;
+                if (!relatedInput || (!relatedInput.contains(e.target) && !suggestions.contains(e.target))) {
+                    suggestions.innerHTML = '';
+                }
+            });
+        });
 
         // --- Interaction Handlers ---
 
@@ -1017,10 +1198,6 @@ PROJECT-TEAM;DOMAIN\team.lead;FullAccess, SendAs</code></pre>
             userInput.value = '';
             fullAccessCheckbox.checked = false;
             sendAsCheckbox.checked = false;
-        }
-
-        function cloneChange(mailboxIdentity, user, accessRights) {
-            addChangeToPending('add', mailboxIdentity, user, accessRights);
         }
 
         async function generateFinalScript() {
